@@ -1,0 +1,14 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build NES ROM",
+            "type": "shell",
+            "command": "ca65 src/main.asm; ca65 src/reset.asm; ld65 src/reset.o src/main.o -C nes.cfg -o main.nes",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
