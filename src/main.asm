@@ -14,15 +14,7 @@
 
 .export main
 .proc main
-  LDX PPUSTATUS
-  LDX #$3f
-  STX PPUADDR
-  LDX #$00
-  STX PPUADDR
-  LDA #$29
-  STA PPUDATA
-  LDA #%00011110
-  STA PPUMASK
+  
   ; contents of main here
 .endproc
 
