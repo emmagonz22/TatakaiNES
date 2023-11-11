@@ -9,6 +9,16 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "Build Background NES ROM",
+            "type": "shell",
+            "command": "ca65 src/Fondo/background.asm; ca65 src/Fondo/reset.asm; ld65 src/Fondo/reset.o src/Fondo/background.o -C nes.cfg -o src/Fondo/background.nes",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
+
     ]
 }
