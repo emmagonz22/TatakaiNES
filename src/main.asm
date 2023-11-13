@@ -11,9 +11,9 @@
   STA OAMADDR
   LDA #$02
   STA OAMDMA
-  LDA #$00
-  STA $2500
-  STA $2500
+  ;LDA #$00
+  ;STA $2500
+  ;STA $2500
   RTI
 .endproc
 
@@ -37,119 +37,73 @@
     BNE loop_load     ; Branch to LoadPalettesLoop if zero flag is not 1 else keepgoing down
 
 
-
-  ;LDX #$00                ; Set LDX to 0 to loop over the chr_data and display the background until X != $80
-  ; background_loop:
-  ;  LDA chr_data, X
-  ;  STA $2007
+  ;LDX #$00
+  ; load_sprites:
+  ;  LDA chr_data, X 
+  ;  STA $0200, X
   ;  INX
-  ;  CPX #$80              ; check if we've loaded all the data
-  ;  BNE background_loop
-  LDX #$00
-  load_sprites:
-    LDA chr_data, X 
-    STA $0200, X
-    INX
-    CPX #$10              ; check if we've loaded all the data
-    BNE load_sprites
+  ;  CPX #$10              ; check if we've loaded all the data
+  ;  BNE load_sprites
 
 
 
-  LDX #$00
-  LDY #$00
+
   load_bg:
-    LDA background_asm, X 
-    STA $2007, X
+    LDA $2002
+    LDA #$20
+    STA $2006
+    LDA #00
+    STA $2006
+    LDX #$00
+    ;LDY #$00
+  loop_bg_1: ;; Looping to #$F0 since 960 bytes / 4 == 240 bytes since the limit that X can handle is 255 for this kind of operation
+    LDA background_asm, X
+    STA PPUDATA  ; Save to PPADDRE
     INX
-    CPX #$F0          ; check if we've loaded all the data
-    BNE load_bg
-    INY
-    CPY #$03
-    BNE load_bg
-
-
+    CPX #$F0         
+    BNE loop_bg_1
+    ;INY
+    ;LDX #$00
+    ;CPY #$03
+    ;BNE loop_bg
+    LDX #$00 ; Reset X to count from 0 to 240
+  loop_bg_2:
+    LDA background_asm+240, X ; Add 240 $F0 since X cant be higher than 255
+    STA PPUDATA
+    INX
+    CPX #$F0
+    BNE loop_bg_2
+    LDX #$00 ; Reset X to count from 0 to 240
+  loop_bg_3:
+    LDA background_asm+480, X ; Add 480 $F0 since X cant be higher than 255
+    STA PPUDATA
+    INX
+    CPX #$F0         ; check if we've loaded all the data
+    BNE loop_bg_3 
+    LDX #$00  ; Reset X to count from 0 to 240
+  loop_bg_4:
+    LDA background_asm+720, X ; Add 720 $F0 since X cant be higher than 255
+    STA PPUDATA
+    INX
+    CPX #$F0         ; check if we've loaded all the data
+    BNE loop_bg_4
+    LDX #$00 ; Reset X to count from 0 to 240
 	; finally, attribute table
-	LDA PPUSTATUS
-	LDA #$23
-	STA PPUADDR
-	LDA #$c2
-	STA PPUADDR
-	LDA #%01000000
-	STA PPUDATA
+	;LDA PPUSTATUS
+	;LDA #$23
+	;STA PPUADDR
+	;LDA #$c2
+	;STA PPUADDR
+	;LDA #%01000000
+	;STA PPUDATA
 
-	LDA PPUSTATUS
-	LDA #$23
-	STA PPUADDR
-	LDA #$e0
-	STA PPUADDR
-	LDA #%00001100
-	STA PPUDATA
-
-
-
-  ;;LDX #$00
-  ;;LDY #$00
-  ;; load_bg:
-  ;;  LDA background_asm, X 
-  ;;  STA $2000, X
-
-  ;;  LDA PPUSTATUS
-  ;;  LDA #$20
-  ;;  INX
-  ;;  CPX #$F0          ; check if we've loaded all the data
-  ;;  BNE load_bg
-  ;;  CPY #$04
-  ;;  BNE increase_Y
-   
-  ;; increase_Y:
-  ;;  INY
-  ;;  LDX #$00 
-  ;;  JMP load_bg
-
-  ;; exit_increase:
-
-
-
-
-  ; Write nametables
-  
-  ;LDA PPUSTATUS
-  ;LDA #$22
-  ;STA PPUADDR
-  ;LDA $6b
-  ;STA PPUADDR
-  ;LDX $2f  
-  ;STX PPUDATA
-
-  ;LDA PPUSTATUS
-  ;LDA #$24
-  ;STA PPUADDR
-  ;LDA $72
-  ;STA PPUADDR
-  ;LDX $2f  
-  ;STX PPUDATA
-
-
-  ; Attribute tables
-
-  ;LDA PPUSTATUS
-  ;LDA #$20
-  ;STA PPUADDR
-  ;LDA #$F3
-  ;STA PPUADDR
-  ;LDA #%01000000
-  ;STA PPUDATA
-
-
-  ;LDA PPUSTATUS
-  ;LDA #$20
-  ;STA PPUADDR
-  ;LDA #$F3
-  ;STA PPUADDR
-  ;LDA #%00001111
-  ;STA PPUDATA
-
-
+;	LDA PPUSTATUS
+;	LDA #$23;
+;	STA PPUADDR;
+;	LDA #$e0
+;	STA PPUADDR;
+;	LDA #%00001100
+;	STA PPUDATA
 
 
 ; vblankwait is period of time when the PPU id not accessing graphics (resting) this occurs at the end of each frame
@@ -165,75 +119,6 @@ vblankwait:       ; wait for another vblank before continuing
 
 forever:
   JMP forever
-
-background_asm:
-	.byte $2a,$2a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$60,$60,$60,$60
-	.byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $2a,$2a,$f0,$f0,$60,$60,$f0,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$89,$60,$60,$60,$60
-	.byte $60,$2a,$2a,$2a,$2a,$2a,$2a,$2a,$2a,$2a,$2a,$2a,$2a,$2a,$2a,$2a
-	.byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$00,$00,$f0,$f0,$f0,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $2a,$2a,$2a,$2a,$2a,$2a,$2a,$2a,$2a,$2a,$2a,$60,$60,$60,$60,$60
-	.byte $60,$60,$f0,$f0,$f0,$f0,$f0,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$f0,$f0,$f0,$f0,$f0,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$f0,$f0,$f0,$89,$f0,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$f0,$2a,$2a,$2a,$f0,$2a,$2a,$2a,$2a,$2a,$2a,$60,$60,$60
-	.byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$f0,$f0,$f0,$f0,$f0,$60,$60,$60,$60,$60,$60,$2a,$2a,$2a
-	.byte $2a,$2a,$2a,$2a,$2a,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$f0,$f0,$f0,$f0,$f0,$60,$89,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$f0,$f0,$f0,$f0,$f0,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$f0,$f0,$f0,$f0,$f0,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$60,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
-	.byte $60,$f0,$35,$36,$f0,$30,$40,$31,$35,$45,$36,$f0,$f0,$f0,$f0,$30
-	.byte $f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$f0,$3e,$4e,$3e,$3e,$4e,$3e,$3e,$3e,$3e,$3e,$4e,$3e,$3e,$3e
-	.byte $4e,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$f0,$f0,$f0,$f0,$9a,$9a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $f0,$f0,$f0,$f0,$f0,$9a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$f0,$f0,$f0,$f0,$f0,$f0,$9a,$f0,$f0,$9a,$f0,$f0,$f0,$f0,$f0
-	.byte $9a,$9a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$9a,$f0
-	.byte $f0,$f0,$f0,$f0,$f0,$9a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$f0,$f0,$f0,$f0,$f0,$2a,$2a,$f0,$f0,$f0,$f0,$f0,$2a,$2a,$2a
-	.byte $2a,$f0,$2a,$f0,$2a,$f0,$2a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$f0,$f0,$f0,$f0,$2a,$2a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $f0,$f0,$f0,$f0,$f0,$f0,$2a,$f0,$2a,$2a,$2a,$2a,$f0,$f0,$f0,$f0
-	.byte $60,$f0,$2a,$2a,$2a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$2a,$f0,$f0,$f0,$f0
-	.byte $60,$f0,$2a,$2a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$f0,$f0,$2a,$2a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$f0,$f0,$f0,$2a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$f0,$f0,$f0,$f0,$2a,$2a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$60,$f0,$f0,$f0,$f0,$2a,$2a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$2a,$2a,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$60,$f0,$f0,$f0,$f0,$f0,$f0,$2a,$2a,$f0,$f0,$f0,$f0,$f0,$2a
-	.byte $2a,$2a,$2a,$2a,$2a,$2a,$2a,$2a,$2a,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $60,$60,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$2a,$2a,$2a,$2a,$2a,$f0
-	.byte $f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-	.byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
-	.byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
-	.byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
-	.byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$0f,$0f,$0f,$0f,$0f,$0f,$0f,$0f
-
-
-
 
 .endproc
 
@@ -256,13 +141,79 @@ background_asm:
       .byte $0f, $14, $25, $27
       .byte $0f, $14, $25, $27
 
-  chr_data:
-      .byte $70, $19, $01, $80
-      .byte $70, $06, $01, $88
-      .byte $78, $07, $01, $80
-      .byte $78, $08, $01, $88
+  ; chr_data:
+  ;    .byte $70, $19, $01, $80
+  ;    .byte $70, $06, $01, $88
+  ;    .byte $78, $07, $01, $80
+  ;    .byte $78, $08, $01, $88
 
-  
+    
+  background_asm:
+    .byte $00,$00,$00,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$60,$60,$60,$60
+    .byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
+    .byte $00,$00,$00,$00,$00,$00,$f0,$00,$00,$60,$60,$60,$60,$60,$60,$60
+    .byte $60,$60,$60,$00,$60,$60,$60,$60,$60,$60,$60,$89,$60,$60,$00,$00
+    .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    .byte $60,$60,$60,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$60,$60,$60,$60,$24
+    .byte $27,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$60,$60,$60,$60
+    .byte $2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b
+    .byte $2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b
+    .byte $2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b
+    .byte $2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b,$2b
+    .byte $60,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    .byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
+    .byte $60,$60,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    .byte $00,$00,$00,$00,$00,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
+    .byte $60,$60,$f0,$f0,$f0,$f0,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    .byte $00,$00,$00,$00,$00,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
+    .byte $60,$60,$f0,$f0,$f0,$f0,$f0,$60,$89,$60,$60,$60,$60,$60,$60,$60
+    .byte $00,$00,$00,$00,$00,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
+    .byte $60,$60,$f0,$f0,$f0,$f0,$f0,$60,$60,$60,$60,$60,$60,$60,$60,$60
+    .byte $60,$60,$60,$00,$00,$00,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
+    .byte $60,$60,$f0,$f0,$f0,$f0,$f0,$28,$60,$60,$1b,$1b,$1b,$60,$28,$60
+    .byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
+    .byte $60,$60,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
+    .byte $60,$60,$f0,$f0,$f0,$1b,$1b,$1b,$1b,$1b,$f0,$f0,$f0,$1b,$1b,$f0
+    .byte $3a,$4c,$3b,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60,$60
+    .byte $60,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $4a,$4c,$4b,$60,$60,$60,$37,$60,$60,$60,$60,$38,$39,$60,$60,$60
+    .byte $60,$f0,$35,$36,$f0,$30,$40,$31,$35,$45,$36,$f0,$f0,$f0,$f0,$30
+    .byte $4a,$4c,$4b,$f0,$f0,$f0,$47,$f0,$35,$36,$f0,$48,$49,$f0,$f0,$f0
+    .byte $3e,$3e,$3e,$4e,$3e,$3e,$4e,$3e,$3e,$3e,$3e,$3e,$4e,$3e,$3e,$3e
+    .byte $4e,$3e,$3e,$4e,$3e,$3e,$3e,$3e,$3e,$3e,$3e,$4e,$3e,$3e,$3e,$3e
+    .byte $60,$f0,$f0,$f0,$f0,$9a,$9a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $f0,$f0,$f0,$f0,$f0,$9a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $60,$f0,$f0,$f0,$f0,$f0,$f0,$9a,$f0,$f0,$9a,$f0,$f0,$f0,$f0,$f0
+    .byte $9a,$9a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $60,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$00,$00,$00,$00,$00,$00
+    .byte $f0,$f0,$f0,$f0,$f0,$9a,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $60,$f0,$f0,$f0,$f0,$f0,$00,$00,$00,$00,$00,$f0,$f0,$00,$00,$00
+    .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $60,$f0,$f0,$f0,$f0,$00,$00,$00,$00,$f0,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $f0,$f0,$f0,$f0,$f0,$00,$00,$00,$00,$00,$00,$00,$f0,$f0,$f0,$f0
+    .byte $29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29
+    .byte $29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29
+    .byte $29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29
+    .byte $29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29,$29
+    .byte $60,$f0,$f0,$00,$00,$00,$00,$00,$00,$00,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $60,$f0,$f0,$f0,$00,$f0,$f0,$f0,$00,$00,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $60,$f0,$f0,$00,$00,$00,$00,$00,$00,$f0,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $f0,$f0,$f0,$f0,$f0,$f0,$00,$00,$00,$f0,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $60,$60,$f0,$f0,$00,$00,$00,$00,$00,$00,$00,$00,$f0,$f0,$f0,$f0
+    .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $60,$60,$f0,$f0,$f0,$f0,$f0,$f0,$00,$00,$00,$00,$00,$00,$00,$00
+    .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $60,$60,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$00,$00,$00,$00,$00,$00,$f0
+    .byte $f0,$f0,$f0,$f0,$f0,$f0,$00,$00,$00,$f0,$f0,$f0,$f0,$f0,$f0,$f0
+    .byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
+    .byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
+    .byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
+    .byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$0f,$0f,$0f,$0f,$0f,$0f,$0f,$0f
+
 
 .segment "VECTORS"
 .addr nmi_handler, reset_handler, irq_handler
