@@ -18,6 +18,15 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "Build Characters NES ROM",
+            "type": "shell",
+            "command": "ca65 src/Personajes/characters.asm; ca65 src/Personajes/reset.asm; ld65 src/Personajes/reset.o src/Personajes/characters.o -C nes.cfg -o src/Personajes/characters.nes",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
 
     ]
