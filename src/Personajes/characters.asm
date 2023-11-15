@@ -46,7 +46,7 @@ load_sprites:
     LDA sprites, X
     STA $0200, X
     INX
-    CPX #$B0
+    CPX #$D0
     BNE load_sprites
 
 
@@ -158,11 +158,24 @@ forever:
 
   ;sprite for dead position
          ;  Y     T    P     X
-      .byte $55, $0b, $00, $00
-      .byte $55, $0c, $00, $08
-      .byte $5d, $1b, $00, $00
-      .byte $5d, $1c, $00, $08
+      .byte $66, $0b, $00, $00
+      .byte $66, $0c, $00, $08
+      .byte $6e, $1b, $00, $00
+      .byte $6e, $1c, $00, $08
 
+  ;sprite for right attack position
+        ;  Y     T    P     X
+      .byte $55, $31, $00, $00
+      .byte $55, $32, $00, $08
+      .byte $5d, $41, $00, $00
+      .byte $5d, $42, $00, $08
+
+  ;sprite for left attack position
+        ;  Y     T    P           X
+      .byte $55, $31, %01000000, $18
+      .byte $55, $32, %01000000, $10
+      .byte $5d, $41, %01000000, $18
+      .byte $5d, $42, %01000000, $10
 
 .segment "VECTORS"
 .addr nmi_handler, reset_handler, irq_handler

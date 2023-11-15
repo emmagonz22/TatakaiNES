@@ -27,6 +27,24 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "Build Movement NES ROM",
+            "type": "shell",
+            "command": "ca65 src/Movimiento/input.asm; ca65 src/Movimiento/controllers.asm; ca65 src/Movimiento/reset.asm; ld65 src/Movimiento/input.o src/Movimiento/controllers.o src/Movimiento/reset.o -C nes.cfg -o src/Movimiento/movement.nes",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build Animation NES ROM",
+            "type": "shell",
+            "command": "ca65 src/Animacion/animation.asm; ca65 src/Animacion/reset.asm; ld65 src/Animacion/animation.o src/Animacion/reset.o -C nes.cfg -o src/Animacion/animation.nes",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
 
     ]
