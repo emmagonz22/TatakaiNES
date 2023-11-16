@@ -36,6 +36,15 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "Build Animation NES ROM",
+            "type": "shell",
+            "command": "ca65 src/Animacion/animation.asm; ca65 src/Animacion/reset.asm; ld65 src/Animacion/animation.o src/Animacion/reset.o -C nes.cfg -o src/Animacion/animation.nes",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
 
     ]
