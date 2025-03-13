@@ -158,16 +158,16 @@ forever:
   LDA #03          ; Return player to default position
   STA player_dir
 
-LDX CANT_JUMP
-CPX #%1
-BEQ player_gravity
+;LDX CANT_JUMP ; Use to verify if the player can jump again
+;CPX #%1       ; If equal to 1 then cant jump since it didnt fall after jumping
+;BEQ player_gravity  ; Jump to gravity to ignore the jumping mecanic
 jump:
   LDA pad1
   AND #BTN_UP
   BEQ player_gravity
-  LDX CURRENT_JUMP
-  CPX #$20
-  BEQ player_gravity
+  ;LDX CURRENT_JUMP
+  ;CPX #$20
+  ;BEQ player_gravity
   DEC PLAYER_Y
   INC CURRENT_JUMP
   LDA #$02          ; Set player_dir to 2 (up)
@@ -175,21 +175,23 @@ jump:
   LDY #$00
 
   
-player_gravity:
-  LDX MOVE_DOWN
+player_gravity:     ; Use ti control the user Y position
+
+  LDX MOVE_DOWN ; Stop falling if MOVEDOWN equal to 1
   CPX #%1
   BEQ skip_reset_jump
-  INC PLAYER_Y
-  LDX CURRENT_JUMP
-  CPX #$20
-  BEQ reset_jump
-  LDX CANT_JUMP
-  CPX #%1
-  BEQ reset_jump
+
+  INC PLAYER_Y      ; Increase the Y position of the player so it will go down 
+  ;LDX CURRENT_JUMP  ; Load the CURRENT_JUMP HEIGHT 
+  ;CPX #$20          ; X is the max heigth the player can jump 
+  ;BEQ reset_jump    ; If True go to reset_equal and wait until the jump is available again
+  ;LDX CANT_JUMP     
+  ;CPX #%1
+  ;BEQ reset_jump
   JMP skip_reset_jump
-reset_jump:
+reset_jump:         ; Use to Reset the Player jump state
   LDA #%1
-  STA CANT_JUMP
+  STA CANT_JUMP     
   DEC CURRENT_JUMP
   CPX $00
   BNE reset_jump 
@@ -228,41 +230,38 @@ done_checking:
   PLP
 
 
-detect_ground: ; USe to detect the main ground (Arena for the players to walk in)
-  ; Verify Ground 
+detect_ground:  ; Use to detect the main ground (Arena for the players to walk in)
+  ; Verify Big Platform Ground (Doesn't take in account the holes (TODO: Add the holes to the offset of the collision))  
   LDA PLAYER_Y
-  CMP #FLOOR_Y_COOR
-  BCS floor_collition_detected
+  CMP #MAIN_PLATFORM
+  BCS floor_collition_detected ; 
 
-  ; Verify Y Platform 
-  LDA PLAYER_Y
-  CMP #PLATFORM_OFFSET_Y
-  BCS no_collition
+  ; Verify if it collide with the Y position of the middle platform Platform 
+  ;LDA PLAYER_Y
+  ;CMP #PLATFORM_OFFSET_Y
+  ;BCS no_collition
 
-
-  ; Verify X Platform start
-  ;Compare X start 
-  LDA PLAYER_X
-  CMP #PLATFORM_START_X
-  BCC no_collition ; less than PLAYER_X < PLATFORM_START_X jump to end
+  ; Verify if collide with the X coord of the middle Platform the left side (start)
+  ; Compare X start 
+  ;LDA PLAYER_X
+  ;CMP #PLATFORM_START_X
+  ;BCC no_collition ; less than PLAYER_X < PLATFORM_START_X jump to end
   ; Verify X Platform end
-  ;Compare X end 
-  LDA PLAYER_X
-  CMP #PLATFORM_END_X
-  BCC floor_collition_detected ; LEss than PLAYER_X < PLAFORM_END_X
-  no_collition:
-    ;  No se esta cayendo
-    LDA #0
-    STA MOVE_DOWN
-    JMP end_collition
+  ; Compare X end 
+  ;LDA PLAYER_X
+  ;CMP #PLATFORM_END_X
+  ;BCS floor_collition_detected ; Less than PLAYER_X < PLAFORM_END_X
+no_collition:
+  ;  Falling 
+  LDA #%0
+  STA MOVE_DOWN
+  JMP end_collition_routine
 
 floor_collition_detected:
   ; Handle collision here
-  LDA #1 ; No se esta cayendo
+  LDA #%1 ; Not falling 
   STA MOVE_DOWN
-end_collition:
-
-
+end_collition_routine:
   RTS
   
 .endproc
@@ -383,42 +382,34 @@ skip_other_sprites:
   ; store tile locations
   ; top left tile:
   LDA PLAYER_Y
-   SBC #$40
   STA $0200
   LDA PLAYER_X
- SBC #$40
   STA $0203
 
   ; top right tile (x + 8):
   LDA PLAYER_Y
-   SBC #$40
   STA $0204
   LDA PLAYER_X
   CLC
   ADC #$08
-    SBC #$40
   STA $0207
 
   ; bottom left tile (y + 8):
   LDA PLAYER_Y
   CLC
   ADC #$08
-   SBC #$40
   STA $0208
   LDA PLAYER_X
-    SBC #$40
   STA $020b
 
   ; bottom right tile (x + 8, y + 8)
   LDA PLAYER_Y
   CLC
   ADC #$08
-   SBC #$40
   STA $020c
   LDA PLAYER_X
   CLC
   ADC #$08
-  SBC #$40
   STA $020f
 
   ; restore registers and return

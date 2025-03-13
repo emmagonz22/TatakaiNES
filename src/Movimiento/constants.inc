@@ -31,4 +31,4 @@ PLATFORM_START_X = %01100000
 PLATFORM_END_X = %10011100
 PLATFORM_OFFSET_Y = %01101000
 FLOOR_OFFSET = $00 ; For now the floor is the entire Y coordinate since the falling feature is for bonus
-FLOOR_Y_COOR = %10100010
+MAIN_PLATFORM = %01110111
